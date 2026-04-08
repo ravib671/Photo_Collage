@@ -3,6 +3,7 @@ const layoutSelect = document.getElementById('layoutSelect');
 const sizeSelect = document.getElementById('sizeSelect');
 const titleInput = document.getElementById('titleInput');
 const effectSelect = document.getElementById('effectSelect');
+const swapModeInput = document.getElementById('swapModeInput');
 const createBtn = document.getElementById('createBtn');
 const thumbGrid = document.getElementById('thumbGrid');
 const statusEl = document.getElementById('status');
@@ -15,42 +16,15 @@ let currentRender = null;
 let dragState = null;
 
 const layouts = {
-  mosaic4: {
-    label: 'Mosaic 2x2',
-    slots: [[0.00, 0.00, 0.50, 0.50], [0.50, 0.00, 0.50, 0.50], [0.00, 0.50, 0.50, 0.50], [0.50, 0.50, 0.50, 0.50]],
-  },
-  stripe3: {
-    label: 'Vertical Stripe 3',
-    slots: [[0.00, 0.00, 0.33, 1.0], [0.33, 0.00, 0.34, 1.0], [0.67, 0.00, 0.33, 1.0]],
-  },
-  stripe4h: {
-    label: 'Horizontal Stripe 4',
-    slots: [[0.00, 0.00, 1.0, 0.25], [0.00, 0.25, 1.0, 0.25], [0.00, 0.50, 1.0, 0.25], [0.00, 0.75, 1.0, 0.25]],
-  },
-  hero4: {
-    label: 'Hero + 3 Tiles',
-    slots: [[0.00, 0.00, 0.65, 1.0], [0.65, 0.00, 0.35, 0.34], [0.65, 0.34, 0.35, 0.33], [0.65, 0.67, 0.35, 0.33]],
-  },
-  centerfocus5: {
-    label: 'Center Focus 5',
-    slots: [[0.00, 0.00, 0.25, 0.25], [0.75, 0.00, 0.25, 0.25], [0.00, 0.75, 0.25, 0.25], [0.75, 0.75, 0.25, 0.25], [0.20, 0.20, 0.60, 0.60]],
-  },
-  roundedMiddle5: {
-    label: 'Rounded Middle 5',
-    slots: [[0.00, 0.00, 0.30, 0.35], [0.70, 0.00, 0.30, 0.35], [0.00, 0.65, 0.30, 0.35], [0.70, 0.65, 0.30, 0.35], { x: 0.22, y: 0.22, width: 0.56, height: 0.56, shape: 'round' }],
-  },
-  film6: {
-    label: 'Film Strip 6',
-    slots: [[0.00, 0.00, 0.5, 0.33], [0.50, 0.00, 0.5, 0.33], [0.00, 0.33, 0.5, 0.34], [0.50, 0.33, 0.5, 0.34], [0.00, 0.67, 0.5, 0.33], [0.50, 0.67, 0.5, 0.33]],
-  },
-  asym7: {
-    label: 'Asymmetric 7',
-    slots: [[0.00, 0.00, 0.4, 0.5], [0.40, 0.00, 0.6, 0.25], [0.40, 0.25, 0.3, 0.25], [0.70, 0.25, 0.3, 0.25], [0.00, 0.50, 0.3, 0.5], [0.30, 0.50, 0.4, 0.5], [0.70, 0.50, 0.3, 0.5]],
-  },
-  wall8: {
-    label: 'Photo Wall 8',
-    slots: [[0.00, 0.00, 0.25, 0.5], [0.25, 0.00, 0.25, 0.25], [0.50, 0.00, 0.25, 0.5], [0.75, 0.00, 0.25, 0.25], [0.25, 0.25, 0.25, 0.25], [0.75, 0.25, 0.25, 0.25], [0.00, 0.50, 0.5, 0.5], [0.50, 0.50, 0.5, 0.5]],
-  },
+  mosaic4: { label: 'Mosaic 2x2', slots: [[0.00, 0.00, 0.50, 0.50], [0.50, 0.00, 0.50, 0.50], [0.00, 0.50, 0.50, 0.50], [0.50, 0.50, 0.50, 0.50]] },
+  stripe3: { label: 'Vertical Stripe 3', slots: [[0.00, 0.00, 0.33, 1.0], [0.33, 0.00, 0.34, 1.0], [0.67, 0.00, 0.33, 1.0]] },
+  stripe4h: { label: 'Horizontal Stripe 4', slots: [[0.00, 0.00, 1.0, 0.25], [0.00, 0.25, 1.0, 0.25], [0.00, 0.50, 1.0, 0.25], [0.00, 0.75, 1.0, 0.25]] },
+  hero4: { label: 'Hero + 3 Tiles', slots: [[0.00, 0.00, 0.65, 1.0], [0.65, 0.00, 0.35, 0.34], [0.65, 0.34, 0.35, 0.33], [0.65, 0.67, 0.35, 0.33]] },
+  centerfocus5: { label: 'Center Focus 5', slots: [[0.00, 0.00, 0.25, 0.25], [0.75, 0.00, 0.25, 0.25], [0.00, 0.75, 0.25, 0.25], [0.75, 0.75, 0.25, 0.25], [0.20, 0.20, 0.60, 0.60]] },
+  roundedMiddle5: { label: 'Rounded Middle 5', slots: [[0.00, 0.00, 0.30, 0.35], [0.70, 0.00, 0.30, 0.35], [0.00, 0.65, 0.30, 0.35], [0.70, 0.65, 0.30, 0.35], { x: 0.22, y: 0.22, width: 0.56, height: 0.56, shape: 'round' }] },
+  film6: { label: 'Film Strip 6', slots: [[0.00, 0.00, 0.5, 0.33], [0.50, 0.00, 0.5, 0.33], [0.00, 0.33, 0.5, 0.34], [0.50, 0.33, 0.5, 0.34], [0.00, 0.67, 0.5, 0.33], [0.50, 0.67, 0.5, 0.33]] },
+  asym7: { label: 'Asymmetric 7', slots: [[0.00, 0.00, 0.4, 0.5], [0.40, 0.00, 0.6, 0.25], [0.40, 0.25, 0.3, 0.25], [0.70, 0.25, 0.3, 0.25], [0.00, 0.50, 0.3, 0.5], [0.30, 0.50, 0.4, 0.5], [0.70, 0.50, 0.3, 0.5]] },
+  wall8: { label: 'Photo Wall 8', slots: [[0.00, 0.00, 0.25, 0.5], [0.25, 0.00, 0.25, 0.25], [0.50, 0.00, 0.25, 0.5], [0.75, 0.00, 0.25, 0.25], [0.25, 0.25, 0.25, 0.25], [0.75, 0.25, 0.25, 0.25], [0.00, 0.50, 0.5, 0.5], [0.50, 0.50, 0.5, 0.5]] },
   grid9: {
     label: 'Grid 3x3 (9)',
     slots: Array.from({ length: 9 }, (_, i) => {
@@ -59,10 +33,7 @@ const layouts = {
       return [col / 3, row / 3, 1 / 3, 1 / 3];
     }),
   },
-  banner10: {
-    label: 'Banner Mix 10',
-    slots: [[0.00, 0.00, 1.0, 0.2], [0.00, 0.20, 0.2, 0.4], [0.20, 0.20, 0.3, 0.4], [0.50, 0.20, 0.3, 0.4], [0.80, 0.20, 0.2, 0.4], [0.00, 0.60, 0.25, 0.4], [0.25, 0.60, 0.25, 0.4], [0.50, 0.60, 0.2, 0.4], [0.70, 0.60, 0.15, 0.4], [0.85, 0.60, 0.15, 0.4]],
-  },
+  banner10: { label: 'Banner Mix 10', slots: [[0.00, 0.00, 1.0, 0.2], [0.00, 0.20, 0.2, 0.4], [0.20, 0.20, 0.3, 0.4], [0.50, 0.20, 0.3, 0.4], [0.80, 0.20, 0.2, 0.4], [0.00, 0.60, 0.25, 0.4], [0.25, 0.60, 0.25, 0.4], [0.50, 0.60, 0.2, 0.4], [0.70, 0.60, 0.15, 0.4], [0.85, 0.60, 0.15, 0.4]] },
 };
 
 Object.entries(layouts).forEach(([value, { label }]) => {
@@ -109,7 +80,9 @@ createBtn.addEventListener('click', () => {
   };
 
   renderCurrentCollage();
-  setStatus('Collage created. Drag photos inside frames to reposition them.');
+  setStatus(swapModeInput.checked
+    ? 'Collage created. Drag one frame onto another to swap photo positions.'
+    : 'Collage created. Drag photos inside frames to reposition them.');
 });
 
 canvas.addEventListener('mousedown', (event) => {
@@ -119,7 +92,6 @@ canvas.addEventListener('mousedown', (event) => {
 
   const point = getCanvasPoint(event);
   const slotIndex = getSlotAtPoint(point.x, point.y);
-
   if (slotIndex === -1) {
     canvas.style.cursor = 'default';
     return;
@@ -133,6 +105,7 @@ canvas.addEventListener('mousedown', (event) => {
     startPanX: slotState.panX,
     startPanY: slotState.panY,
   };
+
   canvas.style.cursor = 'grabbing';
 });
 
@@ -146,6 +119,10 @@ canvas.addEventListener('mousemove', (event) => {
   if (!dragState) {
     const slotIndex = getSlotAtPoint(point.x, point.y);
     canvas.style.cursor = slotIndex === -1 ? 'default' : 'grab';
+    return;
+  }
+
+  if (swapModeInput.checked) {
     return;
   }
 
@@ -166,12 +143,34 @@ canvas.addEventListener('mousemove', (event) => {
   renderCurrentCollage();
 });
 
-window.addEventListener('mouseup', () => {
-  if (dragState) {
-    dragState = null;
-    canvas.style.cursor = 'default';
+window.addEventListener('mouseup', (event) => {
+  if (!dragState || !currentRender) {
+    return;
   }
+
+  if (swapModeInput.checked) {
+    const point = getCanvasPoint(event);
+    const dropSlotIndex = getSlotAtPoint(point.x, point.y);
+
+    if (dropSlotIndex !== -1 && dropSlotIndex !== dragState.slotIndex) {
+      swapSlotPhotos(dragState.slotIndex, dropSlotIndex);
+      renderCurrentCollage();
+      setStatus(`Swapped photo frames ${dragState.slotIndex + 1} and ${dropSlotIndex + 1}.`);
+    }
+  }
+
+  dragState = null;
+  canvas.style.cursor = 'default';
 });
+
+function swapSlotPhotos(slotA, slotB) {
+  const a = currentRender.slots[slotA];
+  const b = currentRender.slots[slotB];
+
+  [a.imgIndex, b.imgIndex] = [b.imgIndex, a.imgIndex];
+  [a.panX, b.panX] = [b.panX, a.panX];
+  [a.panY, b.panY] = [b.panY, a.panY];
+}
 
 function renderCurrentCollage() {
   if (!currentRender) {
@@ -184,7 +183,6 @@ function renderCurrentCollage() {
   ctx.fillRect(0, 0, currentRender.width, currentRender.height);
 
   currentRender.slotRects = drawLayout(currentRender.layout, currentRender.gap, currentRender.effect, currentRender.slots);
-
   applySelectedEffect(currentRender.effect);
 
   if (currentRender.title) {
@@ -374,8 +372,7 @@ function getSlotAtPoint(x, y) {
       const cx = rect.x + rect.width / 2;
       const cy = rect.y + rect.height / 2;
       const radius = Math.min(rect.width, rect.height) / 2;
-      const dist = Math.hypot(x - cx, y - cy);
-      if (dist <= radius) {
+      if (Math.hypot(x - cx, y - cy) <= radius) {
         return i;
       }
       continue;
@@ -408,13 +405,11 @@ function applyMosaicEffect() {
 function applyLandscapeEffect() {
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
-
   for (let i = 0; i < data.length; i += 4) {
     data[i] = Math.min(255, data[i] * 1.08 + 8);
     data[i + 1] = Math.min(255, data[i + 1] * 1.06 + 4);
     data[i + 2] = Math.max(0, data[i + 2] * 0.95);
   }
-
   ctx.putImageData(imageData, 0, 0);
 
   const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
@@ -427,31 +422,26 @@ function applyLandscapeEffect() {
 function applyVividEffect() {
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
-
   for (let i = 0; i < data.length; i += 4) {
     const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
     data[i] = Math.min(255, avg + (data[i] - avg) * 1.35 + 10);
     data[i + 1] = Math.min(255, avg + (data[i + 1] - avg) * 1.35 + 6);
     data[i + 2] = Math.min(255, avg + (data[i + 2] - avg) * 1.35 + 12);
   }
-
   ctx.putImageData(imageData, 0, 0);
 }
 
 function applyVintageEffect() {
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
-
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i];
     const g = data[i + 1];
     const b = data[i + 2];
-
     data[i] = Math.min(255, r * 0.95 + g * 0.35 + b * 0.1 + 10);
     data[i + 1] = Math.min(255, r * 0.2 + g * 0.85 + b * 0.08 + 4);
     data[i + 2] = Math.min(255, r * 0.12 + g * 0.25 + b * 0.62);
   }
-
   ctx.putImageData(imageData, 0, 0);
 }
 
@@ -480,7 +470,6 @@ function applyVignetteEffect() {
     canvas.height / 2,
     Math.max(canvas.width, canvas.height) * 0.75,
   );
-
   radial.addColorStop(0, 'rgba(0, 0, 0, 0)');
   radial.addColorStop(1, 'rgba(0, 0, 0, 0.45)');
 
