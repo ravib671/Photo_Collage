@@ -4,8 +4,8 @@ A browser-based photo collager that can:
 
 - Select images from a local folder.
 - Choose from 10+ predefined collage styles (including one with rounded center image).
-- Apply special effects: Mosaic, Landscape Tone, Shadow 3D look, and Tilted Photos.
-- Choose from 10 predefined collage styles.
+- Add a custom collage title.
+- Apply special effects: Mosaic, Landscape Tone, Shadow 3D look, Tilted Photos, Vivid Colors, Vintage Film, Soft Glow, and Vignette Focus.
 - Generate a collage on canvas and preview it instantly.
 - Download the generated collage as PNG.
 

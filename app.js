@@ -1,6 +1,7 @@
 const folderInput = document.getElementById('folderInput');
 const layoutSelect = document.getElementById('layoutSelect');
 const sizeSelect = document.getElementById('sizeSelect');
+const titleInput = document.getElementById('titleInput');
 const effectSelect = document.getElementById('effectSelect');
 const createBtn = document.getElementById('createBtn');
 const thumbGrid = document.getElementById('thumbGrid');
@@ -21,28 +22,19 @@ const layouts = {
   },
   stripe3: {
     label: 'Vertical Stripe 3',
-    slots: [
-      [0.00, 0.00, 0.33, 1.0], [0.33, 0.00, 0.34, 1.0], [0.67, 0.00, 0.33, 1.0],
-    ],
+    slots: [[0.00, 0.00, 0.33, 1.0], [0.33, 0.00, 0.34, 1.0], [0.67, 0.00, 0.33, 1.0]],
   },
   stripe4h: {
     label: 'Horizontal Stripe 4',
-    slots: [
-      [0.00, 0.00, 1.0, 0.25], [0.00, 0.25, 1.0, 0.25], [0.00, 0.50, 1.0, 0.25], [0.00, 0.75, 1.0, 0.25],
-    ],
+    slots: [[0.00, 0.00, 1.0, 0.25], [0.00, 0.25, 1.0, 0.25], [0.00, 0.50, 1.0, 0.25], [0.00, 0.75, 1.0, 0.25]],
   },
   hero4: {
     label: 'Hero + 3 Tiles',
-    slots: [
-      [0.00, 0.00, 0.65, 1.0], [0.65, 0.00, 0.35, 0.34], [0.65, 0.34, 0.35, 0.33], [0.65, 0.67, 0.35, 0.33],
-    ],
+    slots: [[0.00, 0.00, 0.65, 1.0], [0.65, 0.00, 0.35, 0.34], [0.65, 0.34, 0.35, 0.33], [0.65, 0.67, 0.35, 0.33]],
   },
   centerfocus5: {
     label: 'Center Focus 5',
-    slots: [
-      [0.00, 0.00, 0.25, 0.25], [0.75, 0.00, 0.25, 0.25], [0.00, 0.75, 0.25, 0.25], [0.75, 0.75, 0.25, 0.25],
-      [0.20, 0.20, 0.60, 0.60],
-    ],
+    slots: [[0.00, 0.00, 0.25, 0.25], [0.75, 0.00, 0.25, 0.25], [0.00, 0.75, 0.25, 0.25], [0.75, 0.75, 0.25, 0.25], [0.20, 0.20, 0.60, 0.60]],
   },
   roundedMiddle5: {
     label: 'Rounded Middle 5',
@@ -54,24 +46,15 @@ const layouts = {
   },
   film6: {
     label: 'Film Strip 6',
-    slots: [
-      [0.00, 0.00, 0.5, 0.33], [0.50, 0.00, 0.5, 0.33], [0.00, 0.33, 0.5, 0.34],
-      [0.50, 0.33, 0.5, 0.34], [0.00, 0.67, 0.5, 0.33], [0.50, 0.67, 0.5, 0.33],
-    ],
+    slots: [[0.00, 0.00, 0.5, 0.33], [0.50, 0.00, 0.5, 0.33], [0.00, 0.33, 0.5, 0.34], [0.50, 0.33, 0.5, 0.34], [0.00, 0.67, 0.5, 0.33], [0.50, 0.67, 0.5, 0.33]],
   },
   asym7: {
     label: 'Asymmetric 7',
-    slots: [
-      [0.00, 0.00, 0.4, 0.5], [0.40, 0.00, 0.6, 0.25], [0.40, 0.25, 0.3, 0.25], [0.70, 0.25, 0.3, 0.25],
-      [0.00, 0.50, 0.3, 0.5], [0.30, 0.50, 0.4, 0.5], [0.70, 0.50, 0.3, 0.5],
-    ],
+    slots: [[0.00, 0.00, 0.4, 0.5], [0.40, 0.00, 0.6, 0.25], [0.40, 0.25, 0.3, 0.25], [0.70, 0.25, 0.3, 0.25], [0.00, 0.50, 0.3, 0.5], [0.30, 0.50, 0.4, 0.5], [0.70, 0.50, 0.3, 0.5]],
   },
   wall8: {
     label: 'Photo Wall 8',
-    slots: [
-      [0.00, 0.00, 0.25, 0.5], [0.25, 0.00, 0.25, 0.25], [0.50, 0.00, 0.25, 0.5], [0.75, 0.00, 0.25, 0.25],
-      [0.25, 0.25, 0.25, 0.25], [0.75, 0.25, 0.25, 0.25], [0.00, 0.50, 0.5, 0.5], [0.50, 0.50, 0.5, 0.5],
-    ],
+    slots: [[0.00, 0.00, 0.25, 0.5], [0.25, 0.00, 0.25, 0.25], [0.50, 0.00, 0.25, 0.5], [0.75, 0.00, 0.25, 0.25], [0.25, 0.25, 0.25, 0.25], [0.75, 0.25, 0.25, 0.25], [0.00, 0.50, 0.5, 0.5], [0.50, 0.50, 0.5, 0.5]],
   },
   grid9: {
     label: 'Grid 3x3 (9)',
@@ -83,10 +66,7 @@ const layouts = {
   },
   banner10: {
     label: 'Banner Mix 10',
-    slots: [
-      [0.00, 0.00, 1.0, 0.2], [0.00, 0.20, 0.2, 0.4], [0.20, 0.20, 0.3, 0.4], [0.50, 0.20, 0.3, 0.4], [0.80, 0.20, 0.2, 0.4],
-      [0.00, 0.60, 0.25, 0.4], [0.25, 0.60, 0.25, 0.4], [0.50, 0.60, 0.2, 0.4], [0.70, 0.60, 0.15, 0.4], [0.85, 0.60, 0.15, 0.4],
-    ],
+    slots: [[0.00, 0.00, 1.0, 0.2], [0.00, 0.20, 0.2, 0.4], [0.20, 0.20, 0.3, 0.4], [0.50, 0.20, 0.3, 0.4], [0.80, 0.20, 0.2, 0.4], [0.00, 0.60, 0.25, 0.4], [0.25, 0.60, 0.25, 0.4], [0.50, 0.60, 0.2, 0.4], [0.70, 0.60, 0.15, 0.4], [0.85, 0.60, 0.15, 0.4]],
   },
 };
 
@@ -118,10 +98,10 @@ createBtn.addEventListener('click', () => {
     return;
   }
 
-  const layoutKey = layoutSelect.value;
-  const layout = layouts[layoutKey];
+  const layout = layouts[layoutSelect.value];
   const [w, h] = sizeSelect.value.split('x').map(Number);
   const effect = effectSelect.value;
+  const title = titleInput.value.trim();
 
   canvas.width = w;
   canvas.height = h;
@@ -131,17 +111,58 @@ createBtn.addEventListener('click', () => {
   const gap = Math.max(2, Math.round(Math.min(w, h) * 0.005));
   drawLayout(layout, loadedImages, gap, effect);
 
-  if (effect === 'mosaic') {
-    applyMosaicEffect();
-  }
+  applySelectedEffect(effect);
 
-  if (effect === 'landscape') {
-    applyLandscapeEffect();
+  if (title) {
+    drawCollageTitle(title);
   }
 
   downloadLink.href = canvas.toDataURL('image/png');
-  setStatus(`Created collage using "${layout.label}" with ${layout.slots.length} frame(s) and ${effectSelect.options[effectSelect.selectedIndex].text}.`);
+  setStatus(`Created collage: ${layout.label} + ${effectSelect.options[effectSelect.selectedIndex].text}${title ? ' + title' : ''}.`);
 });
+
+function applySelectedEffect(effect) {
+  switch (effect) {
+    case 'mosaic':
+      applyMosaicEffect();
+      break;
+    case 'landscape':
+      applyLandscapeEffect();
+      break;
+    case 'vivid':
+      applyVividEffect();
+      break;
+    case 'vintage':
+      applyVintageEffect();
+      break;
+    case 'softGlow':
+      applySoftGlowEffect();
+      break;
+    case 'vignette':
+      applyVignetteEffect();
+      break;
+    default:
+      break;
+  }
+}
+
+function drawCollageTitle(title) {
+  const barHeight = Math.max(58, Math.round(canvas.height * 0.09));
+  ctx.save();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+  ctx.fillRect(0, canvas.height - barHeight, canvas.width, barHeight);
+
+  const fontSize = Math.max(24, Math.round(canvas.width * 0.038));
+  ctx.font = `700 ${fontSize}px Inter, Segoe UI, sans-serif`;
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const maxLength = 45;
+  const safeTitle = title.length > maxLength ? `${title.slice(0, maxLength - 1)}…` : title;
+  ctx.fillText(safeTitle, canvas.width / 2, canvas.height - barHeight / 2);
+  ctx.restore();
+}
 
 function setStatus(message) {
   statusEl.textContent = message;
@@ -183,17 +204,12 @@ function drawLayout(layout, images, gap, effect) {
     const img = images[idx % images.length].img;
     const tiltAngle = effect === 'tilted' ? ((idx % 2 === 0 ? 1 : -1) * (3 + (idx % 3))) : 0;
     const shadow3d = effect === 'shadow3d';
-    drawFrame(img, px, py, pw, ph, {
-      shape: slot.shape,
-      tiltAngle,
-      shadow3d,
-    });
+    drawFrame(img, px, py, pw, ph, { shape: slot.shape, tiltAngle, shadow3d });
   });
 }
 
 function drawFrame(img, x, y, width, height, options) {
   const { shape, tiltAngle, shadow3d } = options;
-
   ctx.save();
 
   if (tiltAngle) {
@@ -284,13 +300,9 @@ function applyLandscapeEffect() {
   const data = imageData.data;
 
   for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-
-    data[i] = Math.min(255, r * 1.08 + 8);
-    data[i + 1] = Math.min(255, g * 1.06 + 4);
-    data[i + 2] = Math.max(0, b * 0.95);
+    data[i] = Math.min(255, data[i] * 1.08 + 8);
+    data[i + 1] = Math.min(255, data[i + 1] * 1.06 + 4);
+    data[i + 2] = Math.max(0, data[i + 2] * 0.95);
   }
 
   ctx.putImageData(imageData, 0, 0);
@@ -299,6 +311,70 @@ function applyLandscapeEffect() {
   gradient.addColorStop(0, 'rgba(110, 170, 255, 0.12)');
   gradient.addColorStop(1, 'rgba(255, 187, 130, 0.12)');
   ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function applyVividEffect() {
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+    data[i] = Math.min(255, avg + (data[i] - avg) * 1.35 + 10);
+    data[i + 1] = Math.min(255, avg + (data[i + 1] - avg) * 1.35 + 6);
+    data[i + 2] = Math.min(255, avg + (data[i + 2] - avg) * 1.35 + 12);
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+}
+
+function applyVintageEffect() {
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+
+    data[i] = Math.min(255, r * 0.95 + g * 0.35 + b * 0.1 + 10);
+    data[i + 1] = Math.min(255, r * 0.2 + g * 0.85 + b * 0.08 + 4);
+    data[i + 2] = Math.min(255, r * 0.12 + g * 0.25 + b * 0.62);
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+}
+
+function applySoftGlowEffect() {
+  const glowCanvas = document.createElement('canvas');
+  glowCanvas.width = canvas.width;
+  glowCanvas.height = canvas.height;
+  const glowCtx = glowCanvas.getContext('2d');
+
+  glowCtx.filter = 'blur(12px) saturate(1.2)';
+  glowCtx.globalAlpha = 0.45;
+  glowCtx.drawImage(canvas, 0, 0);
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  ctx.drawImage(glowCanvas, 0, 0);
+  ctx.restore();
+}
+
+function applyVignetteEffect() {
+  const radial = ctx.createRadialGradient(
+    canvas.width / 2,
+    canvas.height / 2,
+    Math.min(canvas.width, canvas.height) * 0.2,
+    canvas.width / 2,
+    canvas.height / 2,
+    Math.max(canvas.width, canvas.height) * 0.75,
+  );
+
+  radial.addColorStop(0, 'rgba(0, 0, 0, 0)');
+  radial.addColorStop(1, 'rgba(0, 0, 0, 0.45)');
+
+  ctx.fillStyle = radial;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
