@@ -1,6 +1,7 @@
 const folderInput = document.getElementById('folderInput');
 const layoutSelect = document.getElementById('layoutSelect');
 const sizeSelect = document.getElementById('sizeSelect');
+const effectSelect = document.getElementById('effectSelect');
 const createBtn = document.getElementById('createBtn');
 const thumbGrid = document.getElementById('thumbGrid');
 const statusEl = document.getElementById('status');
@@ -41,6 +42,14 @@ const layouts = {
     slots: [
       [0.00, 0.00, 0.25, 0.25], [0.75, 0.00, 0.25, 0.25], [0.00, 0.75, 0.25, 0.25], [0.75, 0.75, 0.25, 0.25],
       [0.20, 0.20, 0.60, 0.60],
+    ],
+  },
+  roundedMiddle5: {
+    label: 'Rounded Middle 5',
+    slots: [
+      [0.00, 0.00, 0.30, 0.35], [0.70, 0.00, 0.30, 0.35],
+      [0.00, 0.65, 0.30, 0.35], [0.70, 0.65, 0.30, 0.35],
+      { x: 0.22, y: 0.22, width: 0.56, height: 0.56, shape: 'round' },
     ],
   },
   film6: {
@@ -112,16 +121,26 @@ createBtn.addEventListener('click', () => {
   const layoutKey = layoutSelect.value;
   const layout = layouts[layoutKey];
   const [w, h] = sizeSelect.value.split('x').map(Number);
+  const effect = effectSelect.value;
+
   canvas.width = w;
   canvas.height = h;
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, w, h);
 
   const gap = Math.max(2, Math.round(Math.min(w, h) * 0.005));
-  drawLayout(layout, loadedImages, gap);
+  drawLayout(layout, loadedImages, gap, effect);
+
+  if (effect === 'mosaic') {
+    applyMosaicEffect();
+  }
+
+  if (effect === 'landscape') {
+    applyLandscapeEffect();
+  }
 
   downloadLink.href = canvas.toDataURL('image/png');
-  setStatus(`Created collage using "${layout.label}" with ${layout.slots.length} frame(s).`);
+  setStatus(`Created collage using "${layout.label}" with ${layout.slots.length} frame(s) and ${effectSelect.options[effectSelect.selectedIndex].text}.`);
 });
 
 function setStatus(message) {
@@ -138,17 +157,90 @@ function renderThumbnails(images) {
   });
 }
 
-function drawLayout(layout, images, gap) {
-  layout.slots.forEach((slot, idx) => {
+function normalizeSlot(slot) {
+  if (Array.isArray(slot)) {
     const [x, y, width, height] = slot;
-    const px = Math.round(canvas.width * x) + gap;
-    const py = Math.round(canvas.height * y) + gap;
-    const pw = Math.round(canvas.width * width) - gap * 2;
-    const ph = Math.round(canvas.height * height) - gap * 2;
+    return { x, y, width, height, shape: 'rect' };
+  }
+
+  return {
+    x: slot.x,
+    y: slot.y,
+    width: slot.width,
+    height: slot.height,
+    shape: slot.shape || 'rect',
+  };
+}
+
+function drawLayout(layout, images, gap, effect) {
+  layout.slots.forEach((slotInput, idx) => {
+    const slot = normalizeSlot(slotInput);
+    const px = Math.round(canvas.width * slot.x) + gap;
+    const py = Math.round(canvas.height * slot.y) + gap;
+    const pw = Math.round(canvas.width * slot.width) - gap * 2;
+    const ph = Math.round(canvas.height * slot.height) - gap * 2;
 
     const img = images[idx % images.length].img;
-    drawCover(img, px, py, pw, ph);
+    const tiltAngle = effect === 'tilted' ? ((idx % 2 === 0 ? 1 : -1) * (3 + (idx % 3))) : 0;
+    const shadow3d = effect === 'shadow3d';
+    drawFrame(img, px, py, pw, ph, {
+      shape: slot.shape,
+      tiltAngle,
+      shadow3d,
+    });
   });
+}
+
+function drawFrame(img, x, y, width, height, options) {
+  const { shape, tiltAngle, shadow3d } = options;
+
+  ctx.save();
+
+  if (tiltAngle) {
+    ctx.translate(x + width / 2, y + height / 2);
+    ctx.rotate((tiltAngle * Math.PI) / 180);
+    x = -width / 2;
+    y = -height / 2;
+  }
+
+  if (shadow3d) {
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetX = 8;
+    ctx.shadowOffsetY = 8;
+  }
+
+  if (shape === 'round') {
+    const radius = Math.min(width, height) / 2;
+    ctx.beginPath();
+    ctx.arc(x + width / 2, y + height / 2, radius, 0, Math.PI * 2);
+    ctx.clip();
+  }
+
+  drawCover(img, x, y, width, height);
+
+  if (shape === 'round') {
+    ctx.lineWidth = Math.max(3, Math.round(Math.min(width, height) * 0.015));
+    ctx.strokeStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(x + width / 2, y + height / 2, Math.min(width, height) / 2, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  if (shadow3d) {
+    ctx.shadowColor = 'transparent';
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+    if (shape === 'round') {
+      ctx.beginPath();
+      ctx.arc(x + width / 2, y + height / 2, Math.min(width, height) / 2, 0, Math.PI * 2);
+      ctx.stroke();
+    } else {
+      ctx.strokeRect(x, y, width, height);
+    }
+  }
+
+  ctx.restore();
 }
 
 function drawCover(img, x, y, width, height) {
@@ -169,6 +261,45 @@ function drawCover(img, x, y, width, height) {
   }
 
   ctx.drawImage(img, sx, sy, sw, sh, x, y, width, height);
+}
+
+function applyMosaicEffect() {
+  const scale = Math.max(0.06, Math.min(0.12, 80 / Math.min(canvas.width, canvas.height)));
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = Math.max(1, Math.floor(canvas.width * scale));
+  tempCanvas.height = Math.max(1, Math.floor(canvas.height * scale));
+
+  const tempCtx = tempCanvas.getContext('2d');
+  tempCtx.imageSmoothingEnabled = false;
+  tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, 0, 0, canvas.width, canvas.height);
+  ctx.restore();
+}
+
+function applyLandscapeEffect() {
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+
+    data[i] = Math.min(255, r * 1.08 + 8);
+    data[i + 1] = Math.min(255, g * 1.06 + 4);
+    data[i + 2] = Math.max(0, b * 0.95);
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  gradient.addColorStop(0, 'rgba(110, 170, 255, 0.12)');
+  gradient.addColorStop(1, 'rgba(255, 187, 130, 0.12)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function loadImageFromFile(file) {
