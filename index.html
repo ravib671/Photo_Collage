@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Photo Collager</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <h1>Web Photo Collager</h1>
+    <p class="subtitle">Select an image folder, choose a collage style, and generate a collage in one click.</p>
+
+    <section class="controls" aria-label="Collage controls">
+      <label class="control-group">
+        <span>1) Select image folder</span>
+        <input id="folderInput" type="file" accept="image/*" webkitdirectory directory multiple />
+      </label>
+
+      <label class="control-group">
+        <span>2) Choose collage style</span>
+        <select id="layoutSelect"></select>
+      </label>
+
+      <label class="control-group">
+        <span>3) Output size</span>
+        <select id="sizeSelect">
+          <option value="900x900">Square (900 × 900)</option>
+          <option value="1280x720">Landscape (1280 × 720)</option>
+          <option value="720x1280">Portrait (720 × 1280)</option>
+          <option value="1920x1080">HD (1920 × 1080)</option>
+        </select>
+      </label>
+
+      <label class="control-group">
+        <span>4) Collage title (optional)</span>
+        <input id="titleInput" type="text" maxlength="100" placeholder="e.g. Summer Memories 2026" />
+      </label>
+
+      <label class="control-group">
+        <span>5) Special effect</span>
+        <select id="effectSelect">
+          <option value="none">None</option>
+          <option value="mosaic">Mosaic</option>
+          <option value="landscape">Landscape Tone</option>
+          <option value="shadow3d">Shadow (3D look)</option>
+          <option value="tilted">Tilted Photos</option>
+          <option value="vivid">Vivid Colors</option>
+          <option value="vintage">Vintage Film</option>
+          <option value="softGlow">Soft Glow</option>
+          <option value="vignette">Vignette Focus</option>
+        </select>
+      </label>
+
+      <button id="createBtn" type="button">Create Collage</button>
+      <p id="status" class="status" role="status"></p>
+    </section>
+
+    <section class="preview-panel">
+      <h2>Selected Images</h2>
+      <div id="thumbGrid" class="thumb-grid"></div>
+    </section>
+
+    <section class="preview-panel">
+      <h2>Generated Collage</h2>
+      <canvas id="collageCanvas" width="900" height="900" aria-label="Collage canvas"></canvas>
+      <a id="downloadLink" class="download-link" download="photo-collage.png">Download PNG</a>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
