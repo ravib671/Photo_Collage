@@ -11,14 +11,13 @@ const ctx = canvas.getContext('2d');
 const downloadLink = document.getElementById('downloadLink');
 
 let loadedImages = [];
+let currentRender = null;
+let dragState = null;
 
 const layouts = {
   mosaic4: {
     label: 'Mosaic 2x2',
-    slots: [
-      [0.00, 0.00, 0.50, 0.50], [0.50, 0.00, 0.50, 0.50],
-      [0.00, 0.50, 0.50, 0.50], [0.50, 0.50, 0.50, 0.50],
-    ],
+    slots: [[0.00, 0.00, 0.50, 0.50], [0.50, 0.00, 0.50, 0.50], [0.00, 0.50, 0.50, 0.50], [0.50, 0.50, 0.50, 0.50]],
   },
   stripe3: {
     label: 'Vertical Stripe 3',
@@ -38,11 +37,7 @@ const layouts = {
   },
   roundedMiddle5: {
     label: 'Rounded Middle 5',
-    slots: [
-      [0.00, 0.00, 0.30, 0.35], [0.70, 0.00, 0.30, 0.35],
-      [0.00, 0.65, 0.30, 0.35], [0.70, 0.65, 0.30, 0.35],
-      { x: 0.22, y: 0.22, width: 0.56, height: 0.56, shape: 'round' },
-    ],
+    slots: [[0.00, 0.00, 0.30, 0.35], [0.70, 0.00, 0.30, 0.35], [0.00, 0.65, 0.30, 0.35], [0.70, 0.65, 0.30, 0.35], { x: 0.22, y: 0.22, width: 0.56, height: 0.56, shape: 'round' }],
   },
   film6: {
     label: 'Film Strip 6',
@@ -100,49 +95,114 @@ createBtn.addEventListener('click', () => {
 
   const layout = layouts[layoutSelect.value];
   const [w, h] = sizeSelect.value.split('x').map(Number);
-  const effect = effectSelect.value;
-  const title = titleInput.value.trim();
-
-  canvas.width = w;
-  canvas.height = h;
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, w, h);
-
   const gap = Math.max(2, Math.round(Math.min(w, h) * 0.005));
-  drawLayout(layout, loadedImages, gap, effect);
 
-  applySelectedEffect(effect);
+  currentRender = {
+    layout,
+    effect: effectSelect.value,
+    title: titleInput.value.trim(),
+    width: w,
+    height: h,
+    gap,
+    slots: layout.slots.map((_, idx) => ({ imgIndex: idx % loadedImages.length, panX: 0, panY: 0 })),
+    slotRects: [],
+  };
 
-  if (title) {
-    drawCollageTitle(title);
+  renderCurrentCollage();
+  setStatus('Collage created. Drag photos inside frames to reposition them.');
+});
+
+canvas.addEventListener('mousedown', (event) => {
+  if (!currentRender) {
+    return;
+  }
+
+  const point = getCanvasPoint(event);
+  const slotIndex = getSlotAtPoint(point.x, point.y);
+
+  if (slotIndex === -1) {
+    canvas.style.cursor = 'default';
+    return;
+  }
+
+  const slotState = currentRender.slots[slotIndex];
+  dragState = {
+    slotIndex,
+    startX: point.x,
+    startY: point.y,
+    startPanX: slotState.panX,
+    startPanY: slotState.panY,
+  };
+  canvas.style.cursor = 'grabbing';
+});
+
+canvas.addEventListener('mousemove', (event) => {
+  if (!currentRender) {
+    return;
+  }
+
+  const point = getCanvasPoint(event);
+
+  if (!dragState) {
+    const slotIndex = getSlotAtPoint(point.x, point.y);
+    canvas.style.cursor = slotIndex === -1 ? 'default' : 'grab';
+    return;
+  }
+
+  const rect = currentRender.slotRects[dragState.slotIndex];
+  const slotState = currentRender.slots[dragState.slotIndex];
+  const img = loadedImages[slotState.imgIndex].img;
+  const crop = computeBaseCrop(img, rect.width, rect.height);
+
+  const deltaX = point.x - dragState.startX;
+  const deltaY = point.y - dragState.startY;
+
+  const sourceDeltaX = (deltaX * crop.sw) / rect.width;
+  const sourceDeltaY = (deltaY * crop.sh) / rect.height;
+
+  slotState.panX = dragState.startPanX - sourceDeltaX;
+  slotState.panY = dragState.startPanY - sourceDeltaY;
+
+  renderCurrentCollage();
+});
+
+window.addEventListener('mouseup', () => {
+  if (dragState) {
+    dragState = null;
+    canvas.style.cursor = 'default';
+  }
+});
+
+function renderCurrentCollage() {
+  if (!currentRender) {
+    return;
+  }
+
+  canvas.width = currentRender.width;
+  canvas.height = currentRender.height;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, currentRender.width, currentRender.height);
+
+  currentRender.slotRects = drawLayout(currentRender.layout, currentRender.gap, currentRender.effect, currentRender.slots);
+
+  applySelectedEffect(currentRender.effect);
+
+  if (currentRender.title) {
+    drawCollageTitle(currentRender.title);
   }
 
   downloadLink.href = canvas.toDataURL('image/png');
-  setStatus(`Created collage: ${layout.label} + ${effectSelect.options[effectSelect.selectedIndex].text}${title ? ' + title' : ''}.`);
-});
+}
 
 function applySelectedEffect(effect) {
   switch (effect) {
-    case 'mosaic':
-      applyMosaicEffect();
-      break;
-    case 'landscape':
-      applyLandscapeEffect();
-      break;
-    case 'vivid':
-      applyVividEffect();
-      break;
-    case 'vintage':
-      applyVintageEffect();
-      break;
-    case 'softGlow':
-      applySoftGlowEffect();
-      break;
-    case 'vignette':
-      applyVignetteEffect();
-      break;
-    default:
-      break;
+    case 'mosaic': applyMosaicEffect(); break;
+    case 'landscape': applyLandscapeEffect(); break;
+    case 'vivid': applyVividEffect(); break;
+    case 'vintage': applyVintageEffect(); break;
+    case 'softGlow': applySoftGlowEffect(); break;
+    case 'vignette': applyVignetteEffect(); break;
+    default: break;
   }
 }
 
@@ -158,8 +218,7 @@ function drawCollageTitle(title) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  const maxLength = 45;
-  const safeTitle = title.length > maxLength ? `${title.slice(0, maxLength - 1)}…` : title;
+  const safeTitle = title.length > 45 ? `${title.slice(0, 44)}…` : title;
   ctx.fillText(safeTitle, canvas.width / 2, canvas.height - barHeight / 2);
   ctx.restore();
 }
@@ -184,32 +243,40 @@ function normalizeSlot(slot) {
     return { x, y, width, height, shape: 'rect' };
   }
 
-  return {
-    x: slot.x,
-    y: slot.y,
-    width: slot.width,
-    height: slot.height,
-    shape: slot.shape || 'rect',
-  };
+  return { x: slot.x, y: slot.y, width: slot.width, height: slot.height, shape: slot.shape || 'rect' };
 }
 
-function drawLayout(layout, images, gap, effect) {
+function drawLayout(layout, gap, effect, slotStates) {
+  const slotRects = [];
+
   layout.slots.forEach((slotInput, idx) => {
     const slot = normalizeSlot(slotInput);
-    const px = Math.round(canvas.width * slot.x) + gap;
-    const py = Math.round(canvas.height * slot.y) + gap;
-    const pw = Math.round(canvas.width * slot.width) - gap * 2;
-    const ph = Math.round(canvas.height * slot.height) - gap * 2;
+    const x = Math.round(canvas.width * slot.x) + gap;
+    const y = Math.round(canvas.height * slot.y) + gap;
+    const width = Math.round(canvas.width * slot.width) - gap * 2;
+    const height = Math.round(canvas.height * slot.height) - gap * 2;
 
-    const img = images[idx % images.length].img;
+    const slotState = slotStates[idx];
+    const img = loadedImages[slotState.imgIndex].img;
     const tiltAngle = effect === 'tilted' ? ((idx % 2 === 0 ? 1 : -1) * (3 + (idx % 3))) : 0;
     const shadow3d = effect === 'shadow3d';
-    drawFrame(img, px, py, pw, ph, { shape: slot.shape, tiltAngle, shadow3d });
+
+    drawFrame(img, x, y, width, height, {
+      shape: slot.shape,
+      tiltAngle,
+      shadow3d,
+      panX: slotState.panX,
+      panY: slotState.panY,
+    });
+
+    slotRects.push({ x, y, width, height, shape: slot.shape, tiltAngle });
   });
+
+  return slotRects;
 }
 
 function drawFrame(img, x, y, width, height, options) {
-  const { shape, tiltAngle, shadow3d } = options;
+  const { shape, tiltAngle, shadow3d, panX, panY } = options;
   ctx.save();
 
   if (tiltAngle) {
@@ -233,7 +300,7 @@ function drawFrame(img, x, y, width, height, options) {
     ctx.clip();
   }
 
-  drawCover(img, x, y, width, height);
+  drawCover(img, x, y, width, height, panX, panY);
 
   if (shape === 'round') {
     ctx.lineWidth = Math.max(3, Math.round(Math.min(width, height) * 0.015));
@@ -259,24 +326,67 @@ function drawFrame(img, x, y, width, height, options) {
   ctx.restore();
 }
 
-function drawCover(img, x, y, width, height) {
+function computeBaseCrop(img, width, height) {
   const imgRatio = img.width / img.height;
   const targetRatio = width / height;
 
-  let sx = 0;
-  let sy = 0;
-  let sw = img.width;
-  let sh = img.height;
-
   if (imgRatio > targetRatio) {
-    sw = img.height * targetRatio;
-    sx = (img.width - sw) / 2;
-  } else {
-    sh = img.width / targetRatio;
-    sy = (img.height - sh) / 2;
+    return { sw: img.height * targetRatio, sh: img.height };
   }
 
+  return { sw: img.width, sh: img.width / targetRatio };
+}
+
+function drawCover(img, x, y, width, height, panX = 0, panY = 0) {
+  const { sw, sh } = computeBaseCrop(img, width, height);
+  const maxPanX = (img.width - sw) / 2;
+  const maxPanY = (img.height - sh) / 2;
+
+  const safePanX = Math.max(-maxPanX, Math.min(maxPanX, panX));
+  const safePanY = Math.max(-maxPanY, Math.min(maxPanY, panY));
+
+  const sx = (img.width - sw) / 2 + safePanX;
+  const sy = (img.height - sh) / 2 + safePanY;
+
   ctx.drawImage(img, sx, sy, sw, sh, x, y, width, height);
+}
+
+function getCanvasPoint(event) {
+  const bounds = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / bounds.width;
+  const scaleY = canvas.height / bounds.height;
+
+  return {
+    x: (event.clientX - bounds.left) * scaleX,
+    y: (event.clientY - bounds.top) * scaleY,
+  };
+}
+
+function getSlotAtPoint(x, y) {
+  if (!currentRender?.slotRects?.length) {
+    return -1;
+  }
+
+  for (let i = currentRender.slotRects.length - 1; i >= 0; i -= 1) {
+    const rect = currentRender.slotRects[i];
+
+    if (rect.shape === 'round') {
+      const cx = rect.x + rect.width / 2;
+      const cy = rect.y + rect.height / 2;
+      const radius = Math.min(rect.width, rect.height) / 2;
+      const dist = Math.hypot(x - cx, y - cy);
+      if (dist <= radius) {
+        return i;
+      }
+      continue;
+    }
+
+    if (x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height) {
+      return i;
+    }
+  }
+
+  return -1;
 }
 
 function applyMosaicEffect() {
